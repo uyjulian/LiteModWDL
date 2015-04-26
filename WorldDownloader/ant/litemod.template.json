@@ -4,5 +4,5 @@
     "revision": "${git.revision}",
     "author": "${author}",
     "description": "This mod lets you download worlds",
-    "classTransformerClasses": "wdl.litemod.EventTransformerWDL"
+    "classTransformerClasses": "wdl.litemod.WDLTransformer"
 }
