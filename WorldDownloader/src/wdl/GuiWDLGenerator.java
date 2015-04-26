@@ -1,5 +1,7 @@
 package wdl;
 
+import java.io.IOException;
+
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -20,8 +22,8 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
-    @SuppressWarnings("unchecked")
-	@Override
+    @Override
+	@SuppressWarnings("unchecked")
 	public void initGui()
     {
         this.buttonList.clear();
@@ -29,7 +31,7 @@ public class GuiWDLGenerator extends GuiScreen
         int var1 = this.width / 2;
         int var2 = this.height / 4;
         int var3 = var2 - 15;
-        this.seedField = new GuiTextField(this.fontRendererObj, this.width / 2 - 70, var3, 168, 18);
+        this.seedField = new GuiTextField(0, this.fontRendererObj, this.width / 2 - 70, var3, 168, 18);
         this.seedField.setText("ERROR");
         this.updateSeed(false);
         var3 += 22;
@@ -43,9 +45,6 @@ public class GuiWDLGenerator extends GuiScreen
         this.buttonList.add(new GuiButton(100, var1 - 100, var2 + 150, "Done"));
     }
 
-    /**
-     * Fired when a control is clicked. This is the equivalent of ActionListener.actionPerformed(ActionEvent e).
-     */
     @Override
 	protected void actionPerformed(GuiButton var1)
     {
@@ -70,9 +69,10 @@ public class GuiWDLGenerator extends GuiScreen
 
     /**
      * Called when the mouse is clicked.
+     * @throws IOException 
      */
     @Override
-	protected void mouseClicked(int var1, int var2, int var3)
+	protected void mouseClicked(int var1, int var2, int var3) throws IOException
     {
         super.mouseClicked(var1, var2, var3);
         this.seedField.mouseClicked(var1, var2, var3);
@@ -80,9 +80,10 @@ public class GuiWDLGenerator extends GuiScreen
 
     /**
      * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * @throws IOException 
      */
     @Override
-	protected void keyTyped(char var1, int var2)
+	protected void keyTyped(char var1, int var2) throws IOException
     {
         super.keyTyped(var1, var2);
         this.seedField.textboxKeyTyped(var1, var2);

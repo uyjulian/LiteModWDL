@@ -1,46 +1,34 @@
 package wdl;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
-
-import net.minecraft.client.entity.EntityClientPlayerMP;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.util.Session;
 
 public class GuiWDLMultiworldSelect extends GuiScreen
 {
     private GuiButton cancelBtn;
     private GuiTextField newNameField;
     private boolean newWorld = false;
-    @SuppressWarnings("unused")
-	private int positionID;
-    private float yaw;
+    private int positionID;
     private int thirdPersonViewSave;
     private GuiButton[] buttons;
     private String[] worlds;
     private GuiScreen parent;
-    EntityPlayerSP cam;
 
     public GuiWDLMultiworldSelect(GuiScreen var1)
     {
         this.parent = var1;
-        EntityClientPlayerMP var2 = WDL.tp;
-        this.cam = new EntityPlayerSP(WDL.mc, WDL.wc, new Session("Camera", "", "", "legacy"), var2.dimension);
-        this.cam.setLocationAndAngles(var2.posX, var2.posY - var2.yOffset, var2.posZ, var2.rotationYaw, 0.0F);
-        this.yaw = var2.rotationYaw;
         this.thirdPersonViewSave = WDL.mc.gameSettings.thirdPersonView;
         WDL.mc.gameSettings.thirdPersonView = 0;
-        WDL.mc.renderViewEntity = this.cam;
     }
 
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
-    @SuppressWarnings("unchecked")
-	@Override
+    @Override
 	public void initGui()
     {
         this.buttonList.clear();
@@ -70,16 +58,16 @@ public class GuiWDLMultiworldSelect extends GuiScreen
             }
             else
             {
-                Properties var10 = WDL.loadWorldProps(var6[var9]);
+                Properties var12 = WDL.loadWorldProps(var6[var9]);
 
-                if (var10 == null)
+                if (var12 == null)
                 {
                     var6[var9] = null;
                 }
                 else
                 {
                     ++var8;
-                    var7[var9] = var10.getProperty("WorldName");
+                    var7[var9] = var12.getProperty("WorldName");
                 }
             }
         }
@@ -92,17 +80,17 @@ public class GuiWDLMultiworldSelect extends GuiScreen
         var9 = (this.width - var3 * var4) / 2;
         this.worlds = new String[var8];
         this.buttons = new GuiButton[var8 + 1];
-        int var12 = 0;
+        int var121 = 0;
         int var11;
 
         for (var11 = 0; var11 < var6.length; ++var11)
         {
             if (var6[var11] != null)
             {
-                this.worlds[var12] = var6[var11];
-                this.buttons[var12] = new GuiButton(var12, var12 % var3 * var4 + var9, this.height - 60 - var12 / var3 * 21, var4, 20, var7[var11]);
-                this.buttonList.add(this.buttons[var12]);
-                ++var12;
+                this.worlds[var121] = var6[var11];
+                this.buttons[var121] = new GuiButton(var121, var121 % var3 * var4 + var9, this.height - 60 - var121 / var3 * 21, var4, 20, var7[var11]);
+                this.buttonList.add(this.buttons[var121]);
+                ++var121;
             }
         }
 
@@ -114,12 +102,9 @@ public class GuiWDLMultiworldSelect extends GuiScreen
             this.buttonList.add(this.buttons[var11]);
         }
 
-        this.newNameField = new GuiTextField(this.fontRendererObj, var11 % var3 * var4 + var9, this.height - 60 - var11 / var3 * 21 + 1, var4, 18);
+        this.newNameField = new GuiTextField(0, this.fontRendererObj, var11 % var3 * var4 + var9, this.height - 60 - var11 / var3 * 21 + 1, var4, 18);
     }
 
-    /**
-     * Fired when a control is clicked. This is the equivalent of ActionListener.actionPerformed(ActionEvent e).
-     */
     @Override
 	protected void actionPerformed(GuiButton var1)
     {
@@ -145,12 +130,19 @@ public class GuiWDLMultiworldSelect extends GuiScreen
     }
 
     /**
-     * Called when the mouse is clicked.
+     * Called when the mouse is clicked. Args : mouseX, mouseY, clickedButton
      */
     @Override
 	protected void mouseClicked(int var1, int var2, int var3)
     {
-        super.mouseClicked(var1, var2, var3);
+        try
+        {
+            super.mouseClicked(var1, var2, var3);
+        }
+        catch (IOException var5)
+        {
+            var5.printStackTrace();
+        }
 
         if (this.newWorld)
         {
@@ -159,12 +151,20 @@ public class GuiWDLMultiworldSelect extends GuiScreen
     }
 
     /**
-     * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * Fired when a key is typed (except F11 who toggle full screen). This is the equivalent of
+     * KeyListener.keyTyped(KeyEvent e). Args : character (character on the key), keyCode (lwjgl Keyboard key code)
      */
     @Override
 	protected void keyTyped(char var1, int var2)
     {
-        super.keyTyped(var1, var2);
+        try
+        {
+            super.keyTyped(var1, var2);
+        }
+        catch (IOException var4)
+        {
+            var4.printStackTrace();
+        }
 
         if (this.newNameField.isFocused())
         {
@@ -193,7 +193,7 @@ public class GuiWDLMultiworldSelect extends GuiScreen
     }
 
     /**
-     * Draws the screen and all the components in it.
+     * Draws the screen and all the components in it. Args : mouseX, mouseY, renderPartialTicks
      */
     @Override
 	public void drawScreen(int var1, int var2, float var3)
@@ -210,14 +210,8 @@ public class GuiWDLMultiworldSelect extends GuiScreen
         }
 
         this.drawCenteredString(this.fontRendererObj, "Where are you?", this.width / 2, this.height / 16 + 10, 16711680);
-        this.cam.prevRotationPitch = this.cam.rotationPitch = 0.0F;
-        this.cam.prevRotationYaw = this.cam.rotationYaw = this.yaw;
         float var4 = 0.475F;
-        this.cam.lastTickPosY = this.cam.prevPosY = this.cam.posY = WDL.tp.posY;
-        this.cam.lastTickPosX = this.cam.prevPosX = this.cam.posX = WDL.tp.posX - var4 * Math.sin(this.yaw / 180.0D * Math.PI);
-        this.cam.lastTickPosZ = this.cam.prevPosZ = this.cam.posZ = WDL.tp.posZ + var4 * Math.cos(this.yaw / 180.0D * Math.PI);
         float var5 = 1.0F;
-        this.yaw = (float)(this.yaw + var5 * (1.0D + 0.699999988079071D * Math.cos((this.yaw + 45.0F) / 45.0D * Math.PI)));
 
         if (this.newWorld)
         {
@@ -235,7 +229,6 @@ public class GuiWDLMultiworldSelect extends GuiScreen
     {
         super.onGuiClosed();
         WDL.mc.gameSettings.thirdPersonView = this.thirdPersonViewSave;
-        this.mc.renderViewEntity = WDL.tp;
     }
 
     private void worldSelected(String var1)
@@ -267,13 +260,13 @@ public class GuiWDLMultiworldSelect extends GuiScreen
 
         for (var6 = 0; var6 < var5; ++var6)
         {
-            char var7 = var4[var6];
-            var2 = var2.replace(var7, '_');
+            char var11 = var4[var6];
+            var2 = var2.replace(var11, '_');
         }
 
         (new File(this.mc.mcDataDir, "saves/" + WDL.baseFolderName + " - " + var2)).mkdirs();
-        Properties var11 = new Properties(WDL.baseProps);
-        var11.setProperty("WorldName", var1);
+        Properties var141 = new Properties(WDL.baseProps);
+        var141.setProperty("WorldName", var1);
         String[] var12 = new String[this.worlds.length + 1];
 
         for (var6 = 0; var6 < this.worlds.length; ++var6)
@@ -293,7 +286,7 @@ public class GuiWDLMultiworldSelect extends GuiScreen
         }
 
         WDL.baseProps.setProperty("LinkedWorlds", var13);
-        WDL.saveProps(var2, var11);
+        WDL.saveProps(var2, var141);
         return var2;
     }
 }

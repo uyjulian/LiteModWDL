@@ -1,5 +1,7 @@
 package wdl;
 
+import java.io.IOException;
+
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -26,8 +28,8 @@ public class GuiWDLPlayer extends GuiScreen
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
-    @SuppressWarnings("unchecked")
-	@Override
+    @Override
+	@SuppressWarnings("unchecked")
 	public void initGui()
     {
         this.buttonList.clear();
@@ -47,9 +49,9 @@ public class GuiWDLPlayer extends GuiScreen
         this.buttonList.add(this.playerPosBtn);
         var3 += 22;
         this.posTextY = var3 + 4;
-        this.posX = new GuiTextField(this.fontRendererObj, var1 - 87, var3, 50, 16);
-        this.posY = new GuiTextField(this.fontRendererObj, var1 - 19, var3, 50, 16);
-        this.posZ = new GuiTextField(this.fontRendererObj, var1 + 48, var3, 50, 16);
+        this.posX = new GuiTextField(0, this.fontRendererObj, var1 - 87, var3, 50, 16);
+        this.posY = new GuiTextField(1, this.fontRendererObj, var1 - 19, var3, 50, 16);
+        this.posZ = new GuiTextField(2, this.fontRendererObj, var1 + 48, var3, 50, 16);
         this.posX.setMaxStringLength(7);
         this.posY.setMaxStringLength(7);
         this.posZ.setMaxStringLength(7);
@@ -61,9 +63,6 @@ public class GuiWDLPlayer extends GuiScreen
         this.buttonList.add(new GuiButton(100, var1 - 100, var2 + 150, "Done"));
     }
 
-    /**
-     * Fired when a control is clicked. This is the equivalent of ActionListener.actionPerformed(ActionEvent e).
-     */
     @Override
 	protected void actionPerformed(GuiButton var1)
     {
@@ -100,9 +99,10 @@ public class GuiWDLPlayer extends GuiScreen
 
     /**
      * Called when the mouse is clicked.
+     * @throws IOException 
      */
     @Override
-	protected void mouseClicked(int var1, int var2, int var3)
+	protected void mouseClicked(int var1, int var2, int var3) throws IOException
     {
         super.mouseClicked(var1, var2, var3);
 
@@ -116,9 +116,10 @@ public class GuiWDLPlayer extends GuiScreen
 
     /**
      * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+     * @throws IOException 
      */
     @Override
-	protected void keyTyped(char var1, int var2)
+	protected void keyTyped(char var1, int var2) throws IOException
     {
         super.keyTyped(var1, var2);
         this.posX.textboxKeyTyped(var1, var2);
@@ -224,7 +225,7 @@ public class GuiWDLPlayer extends GuiScreen
     {
         String var2 = WDL.worldProps.getProperty("PlayerPos");
         this.showPosFields = false;
-        this.pickPosBtn.visible = false;
+        this.pickPosBtn.enabled = false;
 
         if (var2.equals("keep"))
         {
@@ -249,7 +250,7 @@ public class GuiWDLPlayer extends GuiScreen
             {
                 this.playerPosBtn.displayString = "Player Position:";
                 this.showPosFields = true;
-                this.pickPosBtn.visible = true;
+                this.pickPosBtn.enabled = true;
             }
         }
     }
@@ -260,14 +261,14 @@ public class GuiWDLPlayer extends GuiScreen
         {
             try
             {
-                int var2 = Integer.parseInt(this.posX.getText());
+                int var5 = Integer.parseInt(this.posX.getText());
                 int var3 = Integer.parseInt(this.posY.getText());
                 int var4 = Integer.parseInt(this.posZ.getText());
-                WDL.worldProps.setProperty("PlayerX", String.valueOf(var2));
+                WDL.worldProps.setProperty("PlayerX", String.valueOf(var5));
                 WDL.worldProps.setProperty("PlayerY", String.valueOf(var3));
                 WDL.worldProps.setProperty("PlayerZ", String.valueOf(var4));
             }
-            catch (NumberFormatException var5)
+            catch (NumberFormatException var51)
             {
                 this.updatePlayerPos(true);
             }
