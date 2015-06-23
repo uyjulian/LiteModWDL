@@ -298,7 +298,7 @@ public class WDL
     /** Must be called when a chunk is no longer needed and should be removed */
     public static void onChunkNoLongerNeeded(Chunk unneededChunk)
     {
-        if (unneededChunk == null || unneededChunk.isModified == false)
+        if (unneededChunk == null)
             return;
 
         chatDebug("onChunkNoLongerNeeded: " + unneededChunk.xPosition + ", " + unneededChunk.zPosition);
@@ -753,7 +753,7 @@ public class WDL
                 {
                     // Chunk c = (Chunk)lhme.getValue();
                     Chunk c = (Chunk)valueField.get(lhme);
-                    if (c != null && c.isModified)
+                    if (c != null)
                     {
                         saveChunk(c);
 
@@ -766,7 +766,7 @@ public class WDL
                         }
                     } else
                     {
-                        chatMsg("Didn\'t save chunk " + c.xPosition + " " + c.zPosition + " because isModified is false!");
+                        chatMsg("Didn\'t save chunk " + c.xPosition + " " + c.zPosition + " because null!");
                     }
                 }
             }
