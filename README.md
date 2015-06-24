@@ -1,3 +1,4 @@
 World Downloader Liteloader
 ===========================
-See http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1285484-1-7-2-world-downloader-mod for more information.
+See http://www.minecraftforum.net/forums/z/1285484 for more information.  
+This Liteloader version is based on Pokechu22's fork: https://github.com/Pokechu22/WorldDownloader  
