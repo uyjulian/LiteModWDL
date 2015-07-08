@@ -20,9 +20,7 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
-    @SuppressWarnings("unchecked")
-	@Override
-	public void initGui()
+    public void initGui()
     {
         this.buttonList.clear();
         this.title = "World Generator Options for " + WDL.baseFolderName.replace('@', ':');
@@ -46,8 +44,7 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Fired when a control is clicked. This is the equivalent of ActionListener.actionPerformed(ActionEvent e).
      */
-    @Override
-	protected void actionPerformed(GuiButton var1)
+    protected void actionPerformed(GuiButton var1)
     {
         if (var1.enabled)
         {
@@ -71,8 +68,7 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Called when the mouse is clicked.
      */
-    @Override
-	protected void mouseClicked(int var1, int var2, int var3)
+    protected void mouseClicked(int var1, int var2, int var3)
     {
         super.mouseClicked(var1, var2, var3);
         this.seedField.mouseClicked(var1, var2, var3);
@@ -81,8 +77,7 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
      */
-    @Override
-	protected void keyTyped(char var1, int var2)
+    protected void keyTyped(char var1, int var2)
     {
         super.keyTyped(var1, var2);
         this.seedField.textboxKeyTyped(var1, var2);
@@ -91,8 +86,7 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Called from the main game loop to update the screen.
      */
-    @Override
-	public void updateScreen()
+    public void updateScreen()
     {
         this.seedField.updateCursorCounter();
         super.updateScreen();
@@ -101,8 +95,7 @@ public class GuiWDLGenerator extends GuiScreen
     /**
      * Draws the screen and all the components in it.
      */
-    @Override
-	public void drawScreen(int var1, int var2, float var3)
+    public void drawScreen(int var1, int var2, float var3)
     {
         this.drawDefaultBackground();
         this.drawCenteredString(this.fontRendererObj, this.title, this.width / 2, this.height / 4 - 40, 16777215);

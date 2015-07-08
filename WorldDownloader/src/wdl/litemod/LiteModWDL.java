@@ -53,7 +53,7 @@ public class LiteModWDL implements LiteMod, RenderListener {
 
 	@Override
 	public void init(File configPath) {
-		WDL.init();
+
 	}
 
 	@Override

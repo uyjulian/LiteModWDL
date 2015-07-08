@@ -25,9 +25,7 @@ public class GuiWDL extends GuiScreen
     /**
      * Adds the buttons (and other controls) to the screen in question.
      */
-    @SuppressWarnings("unchecked")
-	@Override
-	public void initGui()
+    public void initGui()
     {
         if (WDL.isMultiworld && WDL.worldName.isEmpty())
         {
@@ -61,11 +59,6 @@ public class GuiWDL extends GuiScreen
         this.autoStartBtn = new GuiButton(1, w - 100, hi, "Start Download: ERROR");
         this.buttonList.add(this.autoStartBtn);
         this.updateAutoStart(false);
-
-        hi += 22;
-        this.backupBtn = new GuiButton(2, w - 100, hi, "Backup Options...");
-        this.backupBtn.enabled = false;
-        this.buttonList.add(this.backupBtn);
         hi += 28;
         this.worldOverrides = new GuiButton(4, w - 100, hi, "World Overrides...");
         this.buttonList.add(this.worldOverrides);
@@ -82,8 +75,7 @@ public class GuiWDL extends GuiScreen
     /**
      * Fired when a control is clicked. This is the equivalent of ActionListener.actionPerformed(ActionEvent e).
      */
-    @Override
-	protected void actionPerformed(GuiButton guibutton)
+    protected void actionPerformed(GuiButton guibutton)
     {
         if (!guibutton.enabled)
             return;
@@ -93,10 +85,6 @@ public class GuiWDL extends GuiScreen
         if (guibutton.id == 1) // Auto start
         {
             this.updateAutoStart(true);
-        }
-        else if (guibutton.id == 2) // Backup
-        {
-            this.mc.displayGuiScreen(new GuiWDLBackup(this));
         }
         else if (guibutton.id == 4) // World Overrides
         {
@@ -120,8 +108,7 @@ public class GuiWDL extends GuiScreen
     /**
      * Called when the mouse is clicked.
      */
-    @Override
-	protected void mouseClicked(int var1, int var2, int var3)
+    protected void mouseClicked(int var1, int var2, int var3)
     {
         super.mouseClicked(var1, var2, var3);
         this.worldName.mouseClicked(var1, var2, var3);
@@ -130,8 +117,7 @@ public class GuiWDL extends GuiScreen
     /**
      * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
      */
-    @Override
-	protected void keyTyped(char c, int i)
+    protected void keyTyped(char c, int i)
     {
         super.keyTyped(c, i);
         this.worldName.textboxKeyTyped(c, i);
@@ -140,8 +126,7 @@ public class GuiWDL extends GuiScreen
     /**
      * Called from the main game loop to update the screen.
      */
-    @Override
-	public void updateScreen()
+    public void updateScreen()
     {
         this.worldName.updateCursorCounter(); // updateCursorCounter
         super.updateScreen();
@@ -150,8 +135,7 @@ public class GuiWDL extends GuiScreen
     /**
      * Draws the screen and all the components in it.
      */
-    @Override
-	public void drawScreen(int var1, int var2, float var3)
+    public void drawScreen(int var1, int var2, float var3)
     {
         this.drawDefaultBackground(); // drawDefaultBackground
         this.drawCenteredString(this.fontRendererObj, this.title, this.width / 2, this.height / 4 - 40, 16777215);
