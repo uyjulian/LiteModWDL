@@ -44,6 +44,8 @@ import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
+import net.minecraft.entity.item.EntityArmorStand;
 import net.minecraft.entity.item.EntityFireworkRocket;
 import net.minecraft.entity.item.EntityPainting;
 import net.minecraft.entity.player.EntityPlayer;
@@ -235,6 +237,22 @@ public class WDL {
 			defaultProps.setProperty("Debug." + cause.name(), "true");
 		}
 		
+		//Set up entities.
+		defaultProps.setProperty("Entity.TrackDistanceMode", "server");
+		
+		List<String> entityTypes = EntityUtils.getEntityTypes();
+		for (String entity : entityTypes) {
+			defaultProps.setProperty("Entity." + entity + ".Enabled", "true");
+			defaultProps.setProperty("Entity." + entity + ".TrackDistance", 
+					Integer.toString(EntityUtils.getVanillaEntityRange(entity)));
+		}
+		
+		defaultProps.setProperty("Entity.Hologram.Enabled", "true");
+		defaultProps.setProperty("Entity.Hologram.TrackDistance", Integer.toString(
+				EntityUtils.getVanillaEntityRange(EntityArmorStand.class)));
+		
+		defaultProps.setProperty("Entity.FireworksRocketEntity.Enabled", "false");
+		
 		baseProps = new Properties(defaultProps);
 		worldProps = new Properties(baseProps);
 	}
@@ -378,7 +396,7 @@ public class WDL {
 
 	/** Load the previously saved TileEntities and add them to the Chunk **/
 	public static void importTileEntities(Chunk chunk) {
-		File chunkSaveLocation = (File) stealAndGetField(chunkLoader,
+		File chunkSaveLocation = ReflectionUtils.stealAndGetField(chunkLoader,
 				File.class);
 		DataInputStream dis = RegionFileCache.getChunkInputStream(
 				chunkSaveLocation, chunk.xPosition, chunk.zPosition);
@@ -662,7 +680,7 @@ public class WDL {
 
 		hashArrayField.setAccessible(true);
 		// Steal the instance of LongHashMap from our chunk provider
-		LongHashMap lhm = (LongHashMap) stealAndGetField(chunkProvider,
+		LongHashMap lhm = ReflectionUtils.stealAndGetField(chunkProvider,
 				LongHashMap.class);
 		
 		progressScreen.startMajorTask("Saving chunks", 
@@ -765,6 +783,26 @@ public class WDL {
 					c.removeEntity(e);
 				}
 			} else {
+				// Remove entities of unwanted types.
+				//TODO: Handle holograms
+				for (Iterable<Entity> entityList : c.getEntityLists()) {
+					for (Entity e : entityList) {
+						if (e instanceof EntityPlayer) {
+							//Skip players, as otherwise bad things happen, 
+							//such as deleting the current player and causing
+							//the screen to flicker.
+							continue;
+						}
+						
+						if (!EntityUtils.isEntityEnabled(e)) {
+							removedEntities.add(e);
+						}
+					}
+				}
+				for (Entity e : removedEntities) {
+					c.removeEntity(e);
+				}
+				
 				// Add in new entities now.
 				// TODO: This is probably inefficient (as we go through ALL
 				// entities that were loaded.
@@ -1180,23 +1218,23 @@ public class WDL {
 	/** Adds a chat message with a World Downloader prefix */
 	public static void chatMsg(String msg) {
 		minecraft.ingameGUI.getChatGUI().printChatMessage(
-			new ChatComponentText("�c[WorldDL]�6 " + msg));
+			new ChatComponentText("§c[WorldDL]§6 " + msg));
 	}
 
 	/** Adds a chat message with a World Downloader prefix */
 	public static void chatDebug(WDLDebugMessageCause type, String msg) {
 		if (type != null && type.isEnabled()) {
 			minecraft.ingameGUI.getChatGUI().printChatMessage(
-				new ChatComponentText("�2[WorldDL]�6 " + msg));
+				new ChatComponentText("§2[WorldDL]§6 " + msg));
 		} else {
-			logger.info("�2[WorldDL]�6 " + msg);
+			logger.info("§2[WorldDL]§6 " + msg);
 		}
 	}
 
 	/** Adds a chat message with a World Downloader prefix */
 	public static void chatError(String msg) {
 		minecraft.ingameGUI.getChatGUI().printChatMessage(
-			new ChatComponentText("�2[WorldDL]�4 " + msg));
+			new ChatComponentText("§2[WorldDL]§4 " + msg));
 	}
 
 	private static int getSaveVersion(AnvilSaveConverter asc) {
@@ -1224,102 +1262,6 @@ public class WDL {
 		}
 
 		return saveVersion;
-	}
-
-	/**
-	 * Uses Java's reflection API to get access to an unaccessible field
-	 *
-	 * @param typeOfClass
-	 *            Class that the field should be read from
-	 * @param typeOfField
-	 *            The type of the field
-	 * @return An Object of type Field
-	 */
-	public static Field stealField(Class typeOfClass, Class typeOfField) {
-		Field[] fields = typeOfClass.getDeclaredFields();
-
-		for (Field f : fields) {
-			if (f.getType().equals(typeOfField)) {
-				try {
-					f.setAccessible(true);
-					return f;
-				} catch (Exception e) {
-					throw new RuntimeException(
-						"WorldDownloader: Couldn't steal Field of type \""
-						+ typeOfField + "\" from class \"" + typeOfClass
-						+ "\" !", e);
-				}
-			}
-		}
-
-		throw new RuntimeException(
-			"WorldDownloader: Couldn't steal Field of type \""
-			+ typeOfField + "\" from class \"" + typeOfClass
-			+ "\" !");
-	}
-
-	/**
-	 * Uses Java's reflection API to get access to an unaccessible field
-	 *
-	 * @param object
-	 *            Object that the field should be read from or the type of the
-	 *            object if the field is static
-	 * @param typeOfField
-	 *            The type of the field
-	 * @return The value of the field
-	 */
-	public static Object stealAndGetField(Object object, Class typeOfField) {
-		Class typeOfObject;
-
-		if (object instanceof Class) { // User asked for static field:
-			typeOfObject = (Class) object;
-			object = null;
-		} else {
-			typeOfObject = object.getClass();
-		}
-
-		try {
-			Field f = stealField(typeOfObject, typeOfField);
-			return f.get(object);
-		} catch (Exception e) {
-			throw new RuntimeException(
-				"WorldDownloader: Couldn't get Field of type \""
-				+ typeOfField + "\" from object \"" + object
-				+ "\" !", e);
-		}
-	}
-
-	/**
-	 * Uses Java's reflection API to set the value of an unaccessible field
-	 *
-	 * @param object
-	 *            Object that the field should be read from or the type of the
-	 *            object if the field is static
-	 * @param typeOfField
-	 *            The type of the field
-	 * @param value
-	 *            The value to set the field to.
-	 */
-	public static void stealAndSetField(Object object, Class typeOfField,
-			Object value) {
-		Class typeOfObject;
-
-		if (object instanceof Class) { // User asked for static field:
-			typeOfObject = (Class) object;
-			object = null;
-		} else {
-			typeOfObject = object.getClass();
-		}
-
-		try {
-			Field f = stealField(typeOfObject, typeOfField);
-			f.set(object, value);
-		} catch (Exception e) {
-			throw new RuntimeException(
-				"WorldDownloader: Couldn't set Field of type \""
-				+ typeOfField + "\" from object \"" + object
-				+ "\" to " + value + "!", e);
-		}
 	}
 
 	// Add World Downloader buttons to GuiIngameMenu
