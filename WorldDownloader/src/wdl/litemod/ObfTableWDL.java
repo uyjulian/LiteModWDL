@@ -15,8 +15,8 @@ public class ObfTableWDL extends Obf {
 	public static ObfTableWDL S02PacketChat = new ObfTableWDL("net/minecraft/network/play/server/S02PacketChat","iz");
 	public static ObfTableWDL BlockPos = new ObfTableWDL("net/minecraft/util/BlockPos","dt");
 	public static ObfTableWDL S24PacketBlockAction = new ObfTableWDL("net/minecraft/network/play/server/S24PacketBlockAction","iv");
-	public static ObfTableWDL S34PacketMaps = new ObfTableWDL("net/minecraft/network/play/server/S40PacketDisconnect","jx");
-	public static ObfTableWDL S3FPacketCustomPayload = new ObfTableWDL("net/minecraft/network/play/server/S40PacketDisconnect","ji");
+	public static ObfTableWDL S34PacketMaps = new ObfTableWDL("net/minecraft/network/play/server/S34PacketMaps","jx");
+	public static ObfTableWDL S3FPacketCustomPayload = new ObfTableWDL("net/minecraft/network/play/server/S3FPacketCustomPayload","ji");
 	
 	public static ObfTableWDL GuiIngameMenu_initGui = new ObfTableWDL("func_73866_w_","b","initGui");
 	public static ObfTableWDL GuiIngameMenu_actionPerformed = new ObfTableWDL("func_146284_a","a","actionPerformed");
