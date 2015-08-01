@@ -331,12 +331,6 @@ public class WDL {
 		NetworkManager newNM = thePlayer.sendQueue.getNetworkManager();
 
 		if (networkManager != newNM) {
-			// Different server, different world!
-			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
-					"onWorldLoad: different server!");
-			networkManager = newNM;
-			loadBaseProps();
-			
 			// Load the debug settings.
 			WDLDebugMessageCause.resetEnabledToDefaults();
 			WDLDebugMessageCause.globalDebugEnabled = baseProps.getProperty(
@@ -348,6 +342,21 @@ public class WDL {
 				}
 			}
 			
+			// Different server, different world!
+			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
+					"onWorldLoad: different server!");
+			
+			// It may look a bit silly, but getClientBrand() returns the server
+			// brand, not the client one.  Blame MCP.
+			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
+					"Server brand=" + thePlayer.getClientBrand() +
+					".  Using " + (thePlayer.getClientBrand().toLowerCase()
+							.contains("spigot") ? "Spigot" : "Vanilla") +
+							" track distances.");
+			
+			networkManager = newNM;
+			loadBaseProps();
+			
 			if (baseProps.getProperty("AutoStart").equals("true")) {
 				start();
 			} else {
@@ -358,6 +367,14 @@ public class WDL {
 			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
 					"onWorldLoad: same server!");
 
+			// It may look a bit silly, but getClientBrand() returns the server
+			// brand, not the client one.  Blame MCP.
+			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
+					"Server brand=" + thePlayer.getClientBrand() +
+					".  Using " + (thePlayer.getClientBrand().toLowerCase()
+							.contains("spigot") ? "Spigot" : "Vanilla") +
+							" track distances.");
+			
 			if (startOnChange) {
 				start();
 			}
@@ -1299,7 +1316,7 @@ public class WDL {
 		wdlDownload.displayString = (WDLPluginChannels.canDownloadInGeneral() ? (WDL.downloading ? (WDL.saving ? "Still saving..."
 				: "Stop download")
 				: "Download this world")
-				: "�cDownload blocked by server");
+				: "§cDownload blocked by server");
 		wdlDownload.enabled = (WDLPluginChannels.canDownloadInGeneral()
 				&& (!WDL.downloading || (WDL.downloading && !WDL.saving)));
 		wdlOptions.enabled = (WDLPluginChannels.canDownloadInGeneral()

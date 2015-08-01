@@ -1,7 +1,7 @@
 package wdl;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.multiplayer.WorldClient;
+import net.minecraft.crash.CrashReport;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.item.EntityMinecartChest;
@@ -56,8 +56,12 @@ public class WDLEvents {
 	 * Must be called after the static World object in Minecraft has been
 	 * replaced
 	 */
-	public static void onWorldLoad(WorldClient world) {
+	public static void onWorldLoad() {
 		if (WDL.minecraft.isIntegratedServerRunning()) {
+			return;
+		}
+
+		if (WDL.worldLoadingDeferred) {
 			return;
 		}
 

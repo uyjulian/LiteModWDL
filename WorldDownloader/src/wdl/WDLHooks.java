@@ -1,25 +1,17 @@
 package wdl;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import wdl.api.IWDLMod;
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.entity.Entity;
-import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemMap;
 import net.minecraft.network.play.server.S02PacketChat;
 import net.minecraft.network.play.server.S24PacketBlockAction;
 import net.minecraft.network.play.server.S34PacketMaps;
 import net.minecraft.network.play.server.S3FPacketCustomPayload;
 import net.minecraft.profiler.Profiler;
-import net.minecraft.util.BlockPos;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.storage.MapData;
 
 /**
  * The various hooks for WDL. <br/>
@@ -27,8 +19,6 @@ import net.minecraft.world.storage.MapData;
  */
 public class WDLHooks {
 	private static final Profiler profiler = Minecraft.getMinecraft().mcProfiler;
-	
-	public static Map<String, IWDLMod> wdlMods = new HashMap<String, IWDLMod>();
 	
 	/**
 	 * Called when {@link WorldClient#tick()} is called.
@@ -41,58 +31,19 @@ public class WDLHooks {
 			
 			if (sender != WDL.worldClient) {
 				profiler.startSection("onWorldLoad");
-				if (WDL.worldLoadingDeferred) {
-					return;
-				}
-				
-				profiler.startSection("Core");
-				WDLEvents.onWorldLoad(sender);
-				profiler.endSection();
-				
-				for (Map.Entry<String, IWDLMod> e : wdlMods.entrySet()) {
-					profiler.startSection(e.getKey());
-					e.getValue().onWorldLoad(sender);
-					profiler.endSection();
-				}
-				
+				WDLEvents.onWorldLoad();
 				profiler.endSection();
 			} else {
 				profiler.startSection("inventoryCheck");
-				if (WDL.thePlayer != null) {
+				if (WDL.downloading && WDL.thePlayer != null) {
 					if (WDL.thePlayer.openContainer != WDL.windowContainer) {
 						if (WDL.thePlayer.openContainer == WDL.thePlayer.inventoryContainer) {
 							profiler.startSection("onItemGuiClosed");
-							profiler.startSection("Core");
 							WDLEvents.onItemGuiClosed();
-							profiler.endSection();
 							profiler.endSection();
 						} else {
 							profiler.startSection("onItemGuiOpened");
-							
-							profiler.startSection("Core");
 							WDLEvents.onItemGuiOpened();
-							profiler.endSection();
-							
-							Container container = WDL.thePlayer.openContainer;
-							if (WDL.lastEntity != null) {
-								Entity entity = WDL.lastEntity;
-								
-								for (Map.Entry<String, IWDLMod> e : wdlMods.entrySet()) {
-									profiler.startSection(e.getKey());
-									e.getValue().onEntityGuiClosed(sender,
-											entity, container);
-									profiler.endSection();
-								}
-							} else {
-								BlockPos pos = WDL.lastClickedBlock;
-								for (Map.Entry<String, IWDLMod> e : wdlMods.entrySet()) {
-									profiler.startSection(e.getKey());
-									e.getValue().onBlockGuiClosed(sender, pos,
-											container);
-									profiler.endSection();
-								}
-							}
-							
 							profiler.endSection();
 						}
 	
@@ -117,16 +68,15 @@ public class WDLHooks {
 	public static void onWorldClientDoPreChunk(WorldClient sender, int x,
 			int z, boolean loading) {
 		try {
+			if (!WDL.downloading) { return; }
+			
 			profiler.startSection("wdl");
 			
 			if (!loading) {
 				profiler.startSection("onChunkNoLongerNeeded");
 				Chunk c = sender.getChunkFromChunkCoords(x, z); 
 				
-				profiler.startSection("Core");
 				wdl.WDLEvents.onChunkNoLongerNeeded(c);
-				profiler.endSection();
-				
 				profiler.endSection();
 			}
 			
@@ -148,14 +98,12 @@ public class WDLHooks {
 	public static void onWorldClientRemoveEntityFromWorld(WorldClient sender,
 			int eid) {
 		try {
+			if (!WDL.downloading) { return; }
+			
 			profiler.startSection("wdl.onRemoveEntityFromWorld");
+			Entity entity = sender.getEntityByID(eid);
 			
-			Entity entity = WDL.worldClient.getEntityByID(eid);
-			
-			profiler.startSection("Core");
 			WDLEvents.onRemoveEntityFromWorld(entity);
-			profiler.endSection();
-			
 			profiler.endSection();
 		} catch (Throwable e) {
 			WDL.minecraft.crashed(CrashReport.makeCrashReport(e,
@@ -172,20 +120,15 @@ public class WDLHooks {
 	public static void onNHPCHandleChat(NetHandlerPlayClient sender,
 			S02PacketChat packet) {
 		try {
+			if (!Minecraft.getMinecraft().isCallingFromMinecraftThread()) {
+				return;
+			}
+			
+			if (!WDL.downloading) { return; }
+			
 			profiler.startSection("wdl.onChatMessage");
 			
-			//func_148915_c returns the IChatComponent.
-			String chatMessage = packet.func_148915_c().getFormattedText();
-			
-			profiler.startSection("Core");
-			WDLEvents.onChatMessage(chatMessage);
-			profiler.endSection();
-			
-			for (Map.Entry<String, IWDLMod> e : wdlMods.entrySet()) {
-				profiler.startSection(e.getKey());
-				e.getValue().onChat(WDL.worldClient, chatMessage);
-				profiler.endSection();
-			}
+			WDLEvents.onChatMessage(packet.func_148915_c().toString());
 			
 			profiler.endSection();
 		} catch (Throwable e) {
@@ -203,15 +146,16 @@ public class WDLHooks {
 	public static void onNHPCHandleMaps(NetHandlerPlayClient sender,
 			S34PacketMaps packet) {
 		try {
+			if (!Minecraft.getMinecraft().isCallingFromMinecraftThread()) {
+				return;
+			}
+			
+			if (!WDL.downloading) { return; }
+			
 			profiler.startSection("wdl.onMapDataLoaded");
 			
-			int id = packet.getMapId();
-			MapData mapData = ItemMap.loadMapData(packet.getMapId(),
-					WDL.worldClient);
-			
-			profiler.startSection("Core");
-			WDLEvents.onMapDataLoaded(id, mapData);
-			profiler.endSection();
+			WDLEvents.onMapDataLoaded(packet.getMapId(),
+					ItemMap.loadMapData(packet.getMapId(), WDL.worldClient));
 			
 			profiler.endSection();
 		} catch (Throwable e) {
@@ -230,21 +174,14 @@ public class WDLHooks {
 	public static void onNHPCHandleCustomPayload(NetHandlerPlayClient sender,
 			S3FPacketCustomPayload packet) {
 		try {
+			if (!Minecraft.getMinecraft().isCallingFromMinecraftThread()) {
+				return;
+			}
+			
 			profiler.startSection("wdl.onPluginChannelPacket");
 			
-			String channel = packet.getChannelName();
-			byte[] payload = packet.getBufferData().array();
-			
-			profiler.startSection("Core");
-			WDLEvents.onPluginChannelPacket(channel, payload);
-			profiler.endSection();
-			
-			for (Map.Entry<String, IWDLMod> e : wdlMods.entrySet()) {
-				profiler.startSection(e.getKey());
-				e.getValue().onPluginChannelPacket(WDL.worldClient, channel,
-						payload);
-				profiler.endSection();
-			}
+			WDLEvents.onPluginChannelPacket(packet.getChannelName(), packet
+					.getBufferData().array());
 			
 			profiler.endSection();
 		} catch (Throwable e) {
@@ -263,23 +200,16 @@ public class WDLHooks {
 	public static void onNHPCHandleBlockAction(NetHandlerPlayClient sender,
 			S24PacketBlockAction packet) {
 		try {
+			if (!Minecraft.getMinecraft().isCallingFromMinecraftThread()) {
+				return;
+			}
+			
+			if (!WDL.downloading) { return; }
+			
 			profiler.startSection("wdl.onBlockEvent");
 			
-			BlockPos pos = packet.func_179825_a();
-			Block block = packet.getBlockType();
-			int data1 = packet.getData1();
-			int data2 = packet.getData2();
-			
-			profiler.startSection("Core");
-			WDLEvents.onBlockEvent(pos, block, data1, data2);
-			profiler.endSection();
-			
-			for (Map.Entry<String, IWDLMod> e : wdlMods.entrySet()) {
-				profiler.startSection(e.getKey());
-				e.getValue().onBlockEvent(WDL.worldClient, pos, block, 
-						data1, data2);
-				profiler.endSection();
-			}
+			WDLEvents.onBlockEvent(packet.func_179825_a(), packet.getBlockType(),
+					packet.getData1(), packet.getData2());
 			
 			profiler.endSection();
 		} catch (Throwable e) {
