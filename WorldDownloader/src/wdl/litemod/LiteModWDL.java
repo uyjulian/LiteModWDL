@@ -31,6 +31,9 @@ import net.minecraft.entity.projectile.EntityEgg;
 import net.minecraft.entity.projectile.EntityFishHook;
 import net.minecraft.entity.projectile.EntityPotion;
 import net.minecraft.network.play.server.S02PacketChat;
+import net.minecraft.network.play.server.S24PacketBlockAction;
+import net.minecraft.network.play.server.S34PacketMaps;
+import net.minecraft.network.play.server.S3FPacketCustomPayload;
 import net.minecraft.network.play.server.S40PacketDisconnect;
 import net.minecraft.util.IChatComponent;
 
@@ -64,116 +67,23 @@ public class LiteModWDL implements LiteMod, RenderListener {
 	public static void ingameMenuInit(EventInfo<GuiIngameMenu> eventinfo) {}
 	
 	public static void ingameMenuActionPerformed(EventInfo<GuiIngameMenu> eventinfo, GuiButton guibutton) {
-		//more up here
-		switch(guibutton.id){
-		    case 50:
-		        if (WDL.downloading)
-		        {
-		            WDL.stop();
-		            WDL.mc.displayGuiScreen((GuiScreen)null);
-		            WDL.mc.setIngameFocus();
-		        }
-		        else
-		        {
-		            WDL.start();
-		        }
-		        
-		        break;
-		
-		    case 51:
-		        Minecraft.getMinecraft().displayGuiScreen(new GuiWDL(eventinfo.getSource()));
-		        break;
-		}
+		wdl.WDL.handleWDLButtonClick(eventinfo.getSource(), guibutton);
+		//more down here
 	}
 	
 	public static void worldClientTick(EventInfo<WorldClient> eventinfo) {
 		//more up here
-        if( WDL.downloading )
-        {
-            if( WDL.tp.openContainer != WDL.windowContainer )
-            {
-                if( WDL.tp.openContainer == WDL.tp.inventoryContainer )
-                    WDL.onItemGuiClosed();
-                else
-                    WDL.onItemGuiOpened();
-                WDL.windowContainer = WDL.tp.openContainer;
-            }
-        }
+		wdl.WDLHooks.onWorldClientTick(eventinfo.getSource());
 	}
 	
 	public static void worldClientDoPreChunk(EventInfo<WorldClient> eventinfo, int p_73025_1_, int p_73025_2_, boolean p_73025_3_) {
-        if (p_73025_3_)
-        {
-            /* WDL >>> */
-            if( eventinfo.getSource() != WDL.wc )
-                WDL.onWorldLoad();
-            /* <<< WDL */
-            
-        }
-        else
-        {
-            /* WDL >>> */
-            if( WDL.downloading )
-                WDL.onChunkNoLongerNeeded( eventinfo.getSource().getChunkProvider().provideChunk(p_73025_1_, p_73025_2_) );
-            /* <<< WDL */
-        }
+		wdl.WDLHooks.onWorldClientDoPreChunk(eventinfo.getSource(), p_73025_1_, p_73025_2_, p_73025_3_);
         //more down here
 	}
 	
 	public static void worldClientRemoveEntityFromWorld(ReturnEventInfo<WorldClient, Entity> eventinfo, int p_73028_1_) { //return entity
-        // If the entity is being removed and it's outside the default tracking range,
-        // go ahead and remember it until the chunk is saved.
-        if(WDL.downloading)
-        {
-            Entity entity = eventinfo.getSource().getEntityByID(p_73028_1_);
-            if(entity != null)
-            {
-                int threshold = 0;
-                if ((entity instanceof EntityFishHook) ||
-                    //(entity instanceof EntityArrow) ||
-                    //(entity instanceof EntitySmallFireball) ||
-                    //(entity instanceof EntitySnowball) ||
-                    (entity instanceof EntityEnderPearl) ||
-                    (entity instanceof EntityEnderEye) ||
-                    (entity instanceof EntityEgg) ||
-                    (entity instanceof EntityPotion) ||
-                    (entity instanceof EntityExpBottle) ||
-                    (entity instanceof EntityItem) ||
-                    (entity instanceof EntitySquid))
-                {
-                    threshold = 64;
-                }
-                else if ((entity instanceof EntityMinecart) ||
-                         (entity instanceof EntityBoat) ||
-                         (entity instanceof IAnimals))
-                {
-                    threshold = 80;
-                }
-                else if ((entity instanceof EntityDragon) ||
-                         (entity instanceof EntityTNTPrimed) ||
-                         (entity instanceof EntityFallingBlock) ||
-                         (entity instanceof EntityPainting) ||
-                         (entity instanceof EntityXPOrb))
-                {
-                    threshold = 160;
-                }
-                double distance = entity.getDistance(WDL.tp.posX, entity.posY, WDL.tp.posZ);
-                if( distance > threshold)
-                {
-                    WDL.chatDebug("removeEntityFromWorld: Refusing to remove " + EntityList.getEntityString(entity) + " at distance " + distance);
-                    //return null; //cancel right here
-                    eventinfo.setReturnValue(null);
-                }
-                WDL.chatDebug("removeEntityFromWorld: Removing " + EntityList.getEntityString(entity) + " at distance " + distance);
-            }
-        }
+		wdl.WDLHooks.onWorldClientRemoveEntityFromWorld(eventinfo.getSource(), p_73028_1_);
         //more down here
-	}
-	
-	public static void worldClientAddBlockEvent(EventInfo<WorldClient> eventinfo, int par1, int par2, int par3, Block par4, int par5, int par6) {
-		//more up here
-        if( WDL.downloading )
-            WDL.onBlockEvent( par1, par2, par3, par4, par5, par6 );
 	}
 	
 	public static void netHandlerPlayClientHandleDisconnect(EventInfo<NetHandlerPlayClient> eventinfo, S40PacketDisconnect p_147253_1_) {
@@ -183,7 +93,7 @@ public class LiteModWDL implements LiteMod, RenderListener {
 
             try
             {
-                Thread.sleep(2000L);
+                Thread.sleep(2000);
             }
             catch (Exception var3)
             {
@@ -200,7 +110,7 @@ public class LiteModWDL implements LiteMod, RenderListener {
 
             try
             {
-                Thread.sleep(2000L);
+                Thread.sleep(2000);
             }
             catch (Exception var3)
             {
@@ -211,10 +121,25 @@ public class LiteModWDL implements LiteMod, RenderListener {
 	}
 	
 	public static void netHandlerPlayClientHandleChat(EventInfo<NetHandlerPlayClient> eventinfo, S02PacketChat p_147251_1_) {
-        String var2 = p_147251_1_.func_148915_c().getFormattedText();
-        WDL.handleServerSeedMessage(var2);
-        //more down here
+		//more up here
+		wdl.WDLHooks.onNHPCHandleChat(eventinfo.getSource(), p_147251_1_);
 	}
+	
+	public static void netHandlerPlayClientHandleBlockAction(EventInfo<NetHandlerPlayClient> eventinfo, S24PacketBlockAction packetIn) {
+		//more up here
+		wdl.WDLHooks.onNHPCHandleBlockAction(eventinfo.getSource(), packetIn);
+	}
+	
+	public static void netHandlerPlayClientHandleMaps(EventInfo<NetHandlerPlayClient> eventinfo, S34PacketMaps packetIn) {
+		//more up here
+		wdl.WDLHooks.onNHPCHandleMaps(eventinfo.getSource(), packetIn);
+	}
+	
+	public static void netHandlerPlayClientHandleCustomPayload(EventInfo<NetHandlerPlayClient> eventinfo, S3FPacketCustomPayload packetIn) {
+		//more up here
+		wdl.WDLHooks.onNHPCHandleCustomPayload(eventinfo.getSource(), packetIn);
+	}
+	
 
 	@Override
 	public void onRender() {
@@ -222,10 +147,13 @@ public class LiteModWDL implements LiteMod, RenderListener {
 		
 	}
 
+	//handleBlockAction
+	//handleMaps
+	//handleCustomPayload
 	@Override
 	public void onRenderGui(GuiScreen currentScreen) {
 		if ((currentScreen instanceof GuiIngameMenu) && !(currentScreen instanceof GuiScreenInject)) {
-			WDL.mc.displayGuiScreen(new GuiScreenInject());
+			Minecraft.getMinecraft().displayGuiScreen(new GuiScreenInject());
 		}
 		
 	}

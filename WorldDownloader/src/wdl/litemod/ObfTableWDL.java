@@ -13,6 +13,9 @@ public class ObfTableWDL extends Obf {
 	public static ObfTableWDL S40PacketDisconnect = new ObfTableWDL("net/minecraft/network/play/server/S40PacketDisconnect","gs");
 	public static ObfTableWDL IChatComponent = new ObfTableWDL("net/minecraft/util/IChatComponent","fj");
 	public static ObfTableWDL S02PacketChat = new ObfTableWDL("net/minecraft/network/play/server/S02PacketChat","gj");
+	public static ObfTableWDL S24PacketBlockAction = new ObfTableWDL("net/minecraft/network/play/server/S24PacketBlockAction","gg");
+	public static ObfTableWDL S34PacketMaps = new ObfTableWDL("net/minecraft/network/play/server/S34PacketMaps","he");
+	public static ObfTableWDL S3FPacketCustomPayload = new ObfTableWDL("net/minecraft/network/play/server/S3FPacketCustomPayload","gr");
 	
 	public static ObfTableWDL GuiIngameMenu_initGui = new ObfTableWDL("func_73866_w_","w","initGui");
 	public static ObfTableWDL GuiIngameMenu_actionPerformed = new ObfTableWDL("func_146284_a","a","actionPerformed");
@@ -25,6 +28,9 @@ public class ObfTableWDL extends Obf {
 	public static ObfTableWDL NetHandlerPlayClient_handleDisconnect = new ObfTableWDL("func_147253_a","a","handleDisconnect");
 	public static ObfTableWDL NetHandlerPlayClient_onDisconnect = new ObfTableWDL("func_147231_a","a","onDisconnect");
 	public static ObfTableWDL NetHandlerPlayClient_handleChat = new ObfTableWDL("func_147251_a","a","handleChat");
+	public static ObfTableWDL NetHandlerPlayClient_handleBlockAction = new ObfTableWDL("func_147261_a","a","handleBlockAction");
+	public static ObfTableWDL NetHandlerPlayClient_handleMaps = new ObfTableWDL("func_147264_a","a","handleMaps");
+	public static ObfTableWDL NetHandlerPlayClient_handleCustomPayload = new ObfTableWDL("func_147240_a","a","handleCustomPayload");
 
 	protected ObfTableWDL(String seargeName, String obfName) {
 		super(seargeName, obfName);
