@@ -91,6 +91,8 @@ import net.minecraft.world.storage.ThreadedFileIOBase;
 public class WDL {
 	private static Logger logger = LogManager.getLogger();
 	
+	public static final String VERSION = "1.8c-fix2";
+	
 	// TODO: This class needs to be split into smaller classes. There is way too
 	// much different stuff in here.
 
@@ -331,6 +333,9 @@ public class WDL {
 		NetworkManager newNM = thePlayer.sendQueue.getNetworkManager();
 
 		if (networkManager != newNM) {
+			networkManager = newNM;
+			loadBaseProps();
+			
 			// Load the debug settings.
 			WDLDebugMessageCause.resetEnabledToDefaults();
 			WDLDebugMessageCause.globalDebugEnabled = baseProps.getProperty(
@@ -346,16 +351,10 @@ public class WDL {
 			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
 					"onWorldLoad: different server!");
 			
-			// It may look a bit silly, but getClientBrand() returns the server
-			// brand, not the client one.  Blame MCP.
 			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
 					"Server brand=" + thePlayer.getClientBrand() +
-					".  Using " + (thePlayer.getClientBrand().toLowerCase()
-							.contains("spigot") ? "Spigot" : "Vanilla") +
+					".  Using " + (isSpigot() ? "Spigot" : "Vanilla") +
 							" track distances.");
-			
-			networkManager = newNM;
-			loadBaseProps();
 			
 			if (baseProps.getProperty("AutoStart").equals("true")) {
 				start();
@@ -367,12 +366,9 @@ public class WDL {
 			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
 					"onWorldLoad: same server!");
 
-			// It may look a bit silly, but getClientBrand() returns the server
-			// brand, not the client one.  Blame MCP.
 			chatDebug(WDLDebugMessageCause.ON_WORLD_LOAD,
 					"Server brand=" + thePlayer.getClientBrand() +
-					".  Using " + (thePlayer.getClientBrand().toLowerCase()
-							.contains("spigot") ? "Spigot" : "Vanilla") +
+					".  Using " + (isSpigot() ? "Spigot" : "Vanilla") +
 							" track distances.");
 			
 			if (startOnChange) {
@@ -1235,23 +1231,23 @@ public class WDL {
 	/** Adds a chat message with a World Downloader prefix */
 	public static void chatMsg(String msg) {
 		minecraft.ingameGUI.getChatGUI().printChatMessage(
-			new ChatComponentText("§c[WorldDL]§6 " + msg));
+			new ChatComponentText("\u00A7c[WorldDL]\u00A76 " + msg));
 	}
 
 	/** Adds a chat message with a World Downloader prefix */
 	public static void chatDebug(WDLDebugMessageCause type, String msg) {
 		if (type != null && type.isEnabled()) {
 			minecraft.ingameGUI.getChatGUI().printChatMessage(
-				new ChatComponentText("§2[WorldDL]§6 " + msg));
+				new ChatComponentText("\u00A72[WorldDL]\u00A76 " + msg));
 		} else {
-			logger.info("§2[WorldDL]§6 " + msg);
+			logger.info("\u00A72[WorldDL]\u00A76 " + msg);
 		}
 	}
 
 	/** Adds a chat message with a World Downloader prefix */
 	public static void chatError(String msg) {
 		minecraft.ingameGUI.getChatGUI().printChatMessage(
-			new ChatComponentText("§2[WorldDL]§4 " + msg));
+			new ChatComponentText("\u00A72[WorldDL]\u00A74 " + msg));
 	}
 
 	private static int getSaveVersion(AnvilSaveConverter asc) {
@@ -1316,7 +1312,7 @@ public class WDL {
 		wdlDownload.displayString = (WDLPluginChannels.canDownloadInGeneral() ? (WDL.downloading ? (WDL.saving ? "Still saving..."
 				: "Stop download")
 				: "Download this world")
-				: "§cDownload blocked by server");
+				: "\u00A7cDownload blocked by server");
 		wdlDownload.enabled = (WDLPluginChannels.canDownloadInGeneral()
 				&& (!WDL.downloading || (WDL.downloading && !WDL.saving)));
 		wdlOptions.enabled = (WDLPluginChannels.canDownloadInGeneral()
@@ -1364,5 +1360,15 @@ public class WDL {
 	 */
 	public static double convertServerPos(int serverPos) {
 		return serverPos / 32.0;
+	}
+	
+	/**
+	 * Is the current server spigot?
+	 * @return
+	 */
+	public static boolean isSpigot() {
+		// getClientBrand() returns the server's brand.  Blame MCP.
+		return thePlayer.getClientBrand() != null
+				&& thePlayer.getClientBrand().toLowerCase().contains("spigot");
 	}
 }
