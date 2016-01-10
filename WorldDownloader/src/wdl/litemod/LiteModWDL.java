@@ -3,7 +3,6 @@ package wdl.litemod;
 import java.io.File;
 import java.util.List;
 
-import wdl.GuiWDL;
 import wdl.WDL;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -67,7 +66,7 @@ public class LiteModWDL implements LiteMod, RenderListener {
 	public static void ingameMenuInit(EventInfo<GuiIngameMenu> eventinfo) {}
 	
 	public static void ingameMenuActionPerformed(EventInfo<GuiIngameMenu> eventinfo, GuiButton guibutton) {
-		wdl.WDL.handleWDLButtonClick(eventinfo.getSource(), guibutton);
+		wdl.WDLHooks.handleWDLButtonClick(eventinfo.getSource(), guibutton);
 		//more down here
 	}
 	
@@ -89,7 +88,7 @@ public class LiteModWDL implements LiteMod, RenderListener {
 	public static void netHandlerPlayClientHandleDisconnect(EventInfo<NetHandlerPlayClient> eventinfo, S40PacketDisconnect p_147253_1_) {
         if (WDL.downloading)
         {
-            WDL.stop();
+            WDL.stopDownload();
 
             try
             {
@@ -106,7 +105,7 @@ public class LiteModWDL implements LiteMod, RenderListener {
 	public static void netHandlerPlayClientOnDisconnect(EventInfo<NetHandlerPlayClient> eventinfo, IChatComponent p_147231_1_) {
         if (WDL.downloading)
         {
-            WDL.stop();
+            WDL.stopDownload();
 
             try
             {

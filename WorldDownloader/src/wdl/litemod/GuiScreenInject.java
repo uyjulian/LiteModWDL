@@ -12,7 +12,7 @@ public class GuiScreenInject extends GuiIngameMenu {
 	public void initGui() {
 		super.initGui();
 		// Your own code //
-		wdl.WDL.injectWDLButtons(this, buttonList);
+		wdl.WDLHooks.injectWDLButtons(this, buttonList);
 	}
 	
 }

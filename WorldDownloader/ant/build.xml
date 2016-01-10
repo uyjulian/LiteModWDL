@@ -134,6 +134,11 @@
                 <exclude name="**/classes" />
                 <exclude name="liteloader.properties" />
             </fileset>
+            <fileset dir="../../${lib}/resources" excludes=".svn/**">
+                <exclude name="**/Thumbs.db" />
+                <exclude name="**/classes" />
+                <exclude name="liteloader.properties" />
+            </fileset>
         </copy>
     </target>
 
